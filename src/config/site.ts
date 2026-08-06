@@ -12,8 +12,8 @@ function normalizeUrl(url: string): string {
  * ПЕРЕД боевым запуском платежей обязательно выставить реальный домен.
  */
 export const siteConfig = {
-  name: "AI Hub",
-  fullName: "AI Generators Hub",
+  name: "GenGenerate",
+  fullName: "GenGenerate",
   description: "Единая платформа для 100+ ИИ-генераторов контента.",
   url: normalizeUrl(process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"),
 };

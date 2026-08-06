@@ -9,7 +9,7 @@ export interface SeoInput {
   path: string;
   keywords?: string[];
   /**
-   * Только для главной без фильтров: отключает шаблон "%s · AI Hub" из
+   * Только для главной без фильтров: отключает шаблон "%s · GenGenerate" из
    * layout.tsx, чтобы заголовок сайта не задваивался.
    */
   titleAbsolute?: boolean;
