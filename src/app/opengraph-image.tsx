@@ -2,7 +2,7 @@ import { ImageResponse } from "next/og";
 
 import { siteConfig } from "@/config/site";
 
-export const alt = "AI Generators Hub";
+export const alt = "GenGenerate";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 

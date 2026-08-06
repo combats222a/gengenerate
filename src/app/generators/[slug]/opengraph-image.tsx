@@ -3,7 +3,7 @@ import { ImageResponse } from "next/og";
 import { getGeneratorModule } from "@/generators/registry";
 import { siteConfig } from "@/config/site";
 
-export const alt = "Превью генератора — AI Generators Hub";
+export const alt = "Превью генератора — GenGenerate";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 

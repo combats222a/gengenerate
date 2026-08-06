@@ -8,7 +8,7 @@ import { buildMetadata } from "@/lib/seo/metadata";
 // не содержит уникального контента для поиска.
 export const metadata: Metadata = buildMetadata({
   title: "Настройки",
-  description: "Базовые настройки интерфейса AI Generators Hub.",
+  description: "Базовые настройки интерфейса GenGenerate.",
   path: "/settings",
   noIndex: true,
 });
