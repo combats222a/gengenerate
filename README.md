@@ -574,6 +574,98 @@ URL через `router.replace`/`push`, сама сетка результато
 пустое состояние избранного без localStorage. Регрессий на `/kit` и
 `/settings` нет.
 
+## SEO Engine (Этап 9)
+
+**Цель этапа — убрать ручной SEO-код со страниц.** До Этапа 9 `generateMetadata`
+и JSON-LD (`<script type="application/ld+json">`) писались вручную и по
+отдельности на каждой странице; canonical, Open Graph и Twitter Cards не
+существовали вовсе. Теперь это `src/lib/seo/` (два файла) + файловые
+конвенции Next.js — сама страница почти ничего не знает про SEO-механику.
+
+### `src/lib/seo/metadata.ts` — единая сборка `Metadata`
+
+`buildMetadata({ title, description, path, keywords?, noIndex?, titleAbsolute? })`
+строит title/description/keywords, `alternates.canonical`, `openGraph` и
+`twitter` (оба — из тех же title/description, дублировать не нужно) и
+`robots`. Картинку Open Graph здесь указывать не нужно — её подхватывает
+файловая конвенция `opengraph-image.tsx` (см. ниже) автоматически.
+`titleAbsolute` — единственный частный случай (главная страница без
+фильтров), чтобы не задваивался шаблон `%s · AI Hub` из `layout.tsx`.
+
+### `src/lib/seo/json-ld.ts` — Schema.org
+
+Четыре чистые функции, без React:
+
+- `buildBreadcrumbJsonLd(items, currentPath)` — `BreadcrumbList`, из тех же
+  `items`, что рендерит визуальный `<Breadcrumbs>` (Этап 8).
+- `buildItemListJsonLd(generators)` — `ItemList` для каталога, только
+  `status: "available"`.
+- `buildSoftwareApplicationJsonLd(generatorModule)` — `SoftwareApplication`,
+  один на страницу генератора. `isAccessibleForFree` берётся из
+  `isPremium` (Этап 4/6), а не из отдельного SEO-поля — так разметка не
+  может разойтись с реальным поведением Premium Gate.
+- `buildWebSiteJsonLd()` — `WebSite` + `SearchAction`, рендерится только на
+  канонической главной (без `?category=`) — Google не рекомендует
+  дублировать один и тот же `WebSite` на каждой странице сайта.
+
+`<JsonLd data={...} />` (`src/components/shared/json-ld.tsx`) — рендерит
+один объект или массив объектов как `<script>`-теги; страницы передают
+туда только готовую разметку.
+
+### Canonical, Open Graph, Twitter Cards — откуда берутся данные
+
+Единственный источник title/description для страницы генератора —
+`generatorModule.seo` (Этап 6): страница вызывает `buildMetadata` и
+`buildSoftwareApplicationJsonLd` с одним и тем же модулем, второй раз
+текст нигде не задаётся. Это и есть требование ТЗ «каждый генератор
+задаёт SEO исключительно через свою конфигурацию».
+
+### `sitemap.xml` и `robots.txt` — файловые конвенции Next.js
+
+`src/app/sitemap.ts` и `src/app/robots.ts` — не самописный код, а
+стандартный `MetadataRoute.Sitemap`/`MetadataRoute.Robots` Next.js,
+отдаются по адресам `/sitemap.xml` и `/robots.txt` сами. Sitemap собирает
+главную, `/favorites` и по одному `<url>` на каждый генератор из
+SDK-реестра (Этап 6) — при добавлении генератора список обновляется сам,
+без правок. Coming Soon-тизеры не попадают (у них нет страницы), как и
+`/generators` (редирект), `/settings`, `/kit` — их закрывает `robots.ts`
+(`disallow`) и `noIndex: true` в их собственных метаданных (двойная
+подстраховка, а не дублирование одной и той же логики).
+
+### Open Graph / Twitter-картинки — тоже файловая конвенция
+
+`src/app/opengraph-image.tsx` — дефолтная OG-картинка сайта (через
+`ImageResponse` из `next/og`), подхватывается для любой страницы без
+своего файла. `src/app/generators/[slug]/opengraph-image.tsx`
+переопределяет её для сегмента генератора: читает `generatorModule` через
+`getGeneratorModule(slug)` и рисует title/description генератора — то
+есть картинка тоже целиком из конфигурации генератора, отдельного поля
+под неё заводить не пришлось. Twitter-картинка отдельным файлом не
+заводилась — Next.js переиспользует `opengraph-image` для
+`twitter:image`, если своего `twitter-image.tsx` нет.
+
+`metadataBase` (в `layout.tsx`, `new URL(siteConfig.url)`) обязателен для
+этого — без него относительный URL картинки не резолвится в абсолютный
+для соцсетей.
+
+### Хлебные крошки
+
+Визуал не менялся (`<Breadcrumbs>`, Этап 8) — добавился только JSON-LD:
+`BreadcrumbList` теперь есть не только на странице генератора, но и на
+каталоге при активном `?category=` (раньше там был только визуальный
+компонент без разметки).
+
+### Проверено вживую
+
+Собранный прод (`next build && next start`) — заголовок, `canonical`,
+`og:*`/`twitter:*` (включая `og:image`/`twitter:image` с реальным
+content-type `image/png`) и оба JSON-LD блока на `/generators/qr`; `/`
+отдаёт `ItemList` + `WebSite`, `/?category=audio` — `ItemList` +
+`BreadcrumbList`; `/sitemap.xml` — валидный XML с 5 генераторами;
+`/robots.txt` — `disallow` на `/api/`, `/settings`, `/kit` и ссылка на
+sitemap; `/favorites`, `/settings`, `/kit` отдают `noindex, follow`.
+Регрессий по `tsc --noEmit`, `eslint` и `next build` нет.
+
 ## Известные ограничения
 
 - **Аутентификация не подключена** — блок пользователя в Sidebar (`UserMenu`) это
