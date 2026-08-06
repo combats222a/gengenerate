@@ -4,12 +4,15 @@ import { SearchX } from "lucide-react";
 import { getCatalog } from "@/lib/catalog";
 import { categories, getCategoryById } from "@/config/categories";
 import { siteConfig } from "@/config/site";
+import { buildMetadata } from "@/lib/seo/metadata";
+import { buildBreadcrumbJsonLd, buildItemListJsonLd, buildWebSiteJsonLd } from "@/lib/seo/json-ld";
 import { Container } from "@/components/layout/container";
 import { PageHeader } from "@/components/shared/page-header";
 import { GeneratorCard } from "@/components/shared/generator-card";
 import { CategoryPills } from "@/components/shared/category-pills";
 import { EmptyState } from "@/components/shared/empty-state";
 import { Breadcrumbs } from "@/components/shared/breadcrumbs";
+import { JsonLd } from "@/components/shared/json-ld";
 
 interface HomePageProps {
   searchParams: Promise<{ q?: string; category?: string }>;
@@ -20,18 +23,19 @@ export async function generateMetadata({ searchParams }: HomePageProps): Promise
   const activeCategory = category ? getCategoryById(category) : undefined;
 
   if (activeCategory) {
-    return {
+    return buildMetadata({
       title: `${activeCategory.title} — генераторы`,
       description: `Генераторы в категории «${activeCategory.title}»: ${activeCategory.description}.`,
-    };
+      path: `/?category=${activeCategory.id}`,
+    });
   }
 
-  return {
-    title: {
-      absolute: siteConfig.fullName,
-    },
+  return buildMetadata({
+    title: siteConfig.fullName,
     description: siteConfig.description,
-  };
+    path: "/",
+    titleAbsolute: true,
+  });
 }
 
 /**
@@ -51,25 +55,22 @@ export default async function HomePage({ searchParams }: HomePageProps) {
 
   const activeCategory = category ? getCategoryById(category) : undefined;
 
-  const itemListJsonLd = {
-    "@context": "https://schema.org",
-    "@type": "ItemList",
-    itemListElement: items
-      .filter((item) => item.status === "available")
-      .map((item, index) => ({
-        "@type": "ListItem",
-        position: index + 1,
-        name: item.title,
-        url: `${siteConfig.url}/generators/${item.slug}`,
-      })),
-  };
+  // WebSite+SearchAction — только на канонической главной без фильтров
+  // (один экземпляр на сайт, см. src/lib/seo/json-ld.ts); у категории
+  // вместо неё — свои хлебные крошки в разметке.
+  const jsonLdItems = activeCategory
+    ? [
+        buildItemListJsonLd(items),
+        buildBreadcrumbJsonLd(
+          [{ label: "Главная", href: "/" }, { label: activeCategory.title }],
+          `/?category=${activeCategory.id}`,
+        ),
+      ]
+    : [buildItemListJsonLd(items), buildWebSiteJsonLd()];
 
   return (
     <div>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListJsonLd) }}
-      />
+      <JsonLd data={jsonLdItems} />
 
       <PageHeader
         title={activeCategory ? activeCategory.title : "Каталог генераторов"}

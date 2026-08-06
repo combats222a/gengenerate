@@ -4,10 +4,12 @@ import { notFound } from "next/navigation";
 import { getAllGeneratorModules, getGeneratorModule } from "@/generators/registry";
 import { getSimilarGenerators } from "@/lib/catalog";
 import { getCategoryById } from "@/config/categories";
-import { siteConfig } from "@/config/site";
+import { buildMetadata } from "@/lib/seo/metadata";
+import { buildBreadcrumbJsonLd, buildSoftwareApplicationJsonLd } from "@/lib/seo/json-ld";
 import { Container } from "@/components/layout/container";
 import { PageHeader } from "@/components/shared/page-header";
 import { Breadcrumbs } from "@/components/shared/breadcrumbs";
+import { JsonLd } from "@/components/shared/json-ld";
 import { GeneratorCard } from "@/components/shared/generator-card";
 import { GeneratorEngineLoader } from "@/components/generator-engine/generator-loader";
 
@@ -37,11 +39,12 @@ export async function generateMetadata({ params }: GeneratorPageProps): Promise<
   const generatorModule = await getGeneratorModule(slug);
   if (!generatorModule) return {};
 
-  return {
+  return buildMetadata({
     title: generatorModule.seo.title,
     description: generatorModule.seo.description,
     keywords: generatorModule.seo.keywords,
-  };
+    path: `/generators/${slug}`,
+  });
 }
 
 export default async function GeneratorPage({ params }: GeneratorPageProps) {
@@ -61,22 +64,13 @@ export default async function GeneratorPage({ params }: GeneratorPageProps) {
     { label: generatorModule.title },
   ];
 
-  const breadcrumbJsonLd = {
-    "@context": "https://schema.org",
-    "@type": "BreadcrumbList",
-    itemListElement: breadcrumbItems.map((item, index) => ({
-      "@type": "ListItem",
-      position: index + 1,
-      name: item.label,
-      item: item.href ? `${siteConfig.url}${item.href}` : `${siteConfig.url}/generators/${slug}`,
-    })),
-  };
-
   return (
     <div>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      <JsonLd
+        data={[
+          buildBreadcrumbJsonLd(breadcrumbItems, `/generators/${slug}`),
+          buildSoftwareApplicationJsonLd(generatorModule),
+        ]}
       />
 
       <PageHeader title={generatorModule.title} description={category?.title} />

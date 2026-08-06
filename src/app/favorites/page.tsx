@@ -1,11 +1,19 @@
+import type { Metadata } from "next";
+
 import { getAllGeneratorModules, toCatalogGenerator } from "@/generators/registry";
+import { buildMetadata } from "@/lib/seo/metadata";
 import { Container } from "@/components/layout/container";
 import { PageHeader } from "@/components/shared/page-header";
 import { FavoritesList, type SerializableCatalogItem } from "@/components/shared/favorites-list";
 
-export const metadata = {
+// noIndex: список зависит от localStorage конкретного браузера — на
+// сервере он у всех посетителей одинаково пуст, индексировать нечего.
+export const metadata: Metadata = buildMetadata({
   title: "Избранное",
-};
+  description: "Сохранённые генераторы — список хранится локально в вашем браузере.",
+  path: "/favorites",
+  noIndex: true,
+});
 
 /**
  * Избранное живёт в localStorage (см. src/lib/favorites.ts), поэтому
