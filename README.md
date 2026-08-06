@@ -239,6 +239,7 @@ NEXT_PUBLIC_SITE_URL=    # боевой домен — обязателен дл
 NOWPAYMENTS_API_KEY=     # Dashboard → API keys
 NOWPAYMENTS_IPN_SECRET=  # Dashboard → Store Settings → IPN
 REDIS_URL=               # redis://[:password@]host:port
+NEXT_PUBLIC_ANALYTICS_PROVIDERS=  # см. Этап 10, необязательная — есть дефолт
 ```
 
 `.gitignore` по-прежнему игнорирует `.env*`, но с явным исключением для
@@ -666,7 +667,77 @@ content-type `image/png`) и оба JSON-LD блока на `/generators/qr`; `/
 sitemap; `/favorites`, `/settings`, `/kit` отдают `noindex, follow`.
 Регрессий по `tsc --noEmit`, `eslint` и `next build` нет.
 
+## Analytics Engine (Этап 10)
+
+Универсальная система аналитики — тот же принцип провайдеров, что у
+Generator Engine (Этап 5/6.5): движок (`src/lib/analytics/`) работает с
+типизированными событиями и не знает, куда именно они улетают. Куда именно
+— решает `src/config/analytics.ts`, единственное место, которое знает про
+конкретные сервисы.
+
+### Что отслеживается
+
+- **Просмотры страниц** — `page_view`, на каждой смене `pathname`/`searchParams`.
+- **Генерации** — `generation_started` / `generation_success` (с длительностью)
+  / `generation_error`, из `useGeneratorEngine` (Этап 5).
+- **Скачивания** — `download`, из `GeneratorPreview` при клике на "Скачать".
+- **Конверсии Premium** — `premium_conversion`, из `/api/webhook` в момент
+  подтверждения оплаты NOWPayments (не при клике на тариф — конверсия
+  считается только когда деньги реально пришли, см. Этап 4).
+- **Поиск** — `search`, из `CatalogSearchInput` после дебаунса.
+- **Ошибки** — `client_error`, глобальные `window.onerror` и
+  `unhandledrejection`, из `AnalyticsProvider`.
+- **Производительность** — `web_vital`, через встроенный `useReportWebVitals`
+  Next.js (LCP, CLS, INP и т.д.), без дополнительных зависимостей.
+
+### Архитектура — не привязана к сервису
+
+```
+components/providers/analytics-provider.tsx   — монтируется в layout,
+                                                 инициализирует движок,
+                                                 ловит page_view/error/vitals
+lib/analytics/events.ts                        — trackPageView, trackSearch,
+                                                 trackDownload и т.д. — то,
+                                                 что вызывают компоненты
+lib/analytics/index.ts                         — ядро: рассылает событие
+                                                 всем зарегистрированным
+                                                 провайдерам
+lib/analytics/providers/*.ts                   — console, beacon — конкретные
+                                                 реализации track()
+config/analytics.ts                            — какие провайдеры включены
+                                                 (NEXT_PUBLIC_ANALYTICS_PROVIDERS)
+app/api/analytics/route.ts + lib/analytics/server.ts
+                                                — приём событий с клиента и
+                                                  серверные события (webhook);
+                                                  сейчас — суточные счётчики
+                                                  в том же Redis, что и
+                                                  подписки (Этап 4)
+```
+
+Чтобы подключить реальный сервис (GA4, PostHog, Plausible, Vercel Analytics
+и т.д.), нужно добавить новый `createXxxProvider()` и/или переслать событие
+из `trackServerEvent` — движок, хуки и компоненты-потребители трогать не
+нужно.
+
+`DistributiveOmit` в `lib/analytics/types.ts` — обычный `Omit` на
+дискриминированном объединении схлопывает специфичные поля каждого события
+до общих (`keyof` объединения — это пересечение ключей), поэтому для
+`AnalyticsEventInput` использован распределяющий вариант.
+
+### Проверено вживую
+
+`tsc` (через `next build`) и `eslint` — без ошибок; `next build` собирает
+`/api/analytics` вместе с остальными роутами.
+
 ## Известные ограничения
+
+- **Analytics Engine (Этап 10) хранит только суточные счётчики по имени
+  события** (`analytics:<name>:<YYYY-MM-DD>` в Redis) — без разбивки по
+  конкретному генератору/странице и без дашборда для просмотра. Такой
+  срез не требовался в ТЗ Этапа 10 ("не привязывать к конкретному
+  сервису"); детальная аналитика с UI — задача для реального стороннего
+  сервиса (GA4/PostHog/Plausible), который подключается через тот же
+  `config/analytics.ts` без изменения движка.
 
 - **Аутентификация не подключена** — блок пользователя в Sidebar (`UserMenu`) это
   статичная заглушка ("Гость"), готовая принять реальные данные аккаунта.
