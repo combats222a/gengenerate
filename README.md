@@ -1,4 +1,4 @@
-# AI Generators Hub
+# GenGenerate
 
 Архитектурный фундамент SaaS-платформы для 100+ ИИ-генераторов контента.
 
@@ -591,7 +591,7 @@ URL через `router.replace`/`push`, сама сетка результато
 `robots`. Картинку Open Graph здесь указывать не нужно — её подхватывает
 файловая конвенция `opengraph-image.tsx` (см. ниже) автоматически.
 `titleAbsolute` — единственный частный случай (главная страница без
-фильтров), чтобы не задваивался шаблон `%s · AI Hub` из `layout.tsx`.
+фильтров), чтобы не задваивался шаблон `%s · GenGenerate` из `layout.tsx`.
 
 ### `src/lib/seo/json-ld.ts` — Schema.org
 
