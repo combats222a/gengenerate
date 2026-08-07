@@ -1,0 +1,256 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+/* ==========================================================================
+   Дизайн-система "Studio"
+   ---------------------------------------------------------------------------
+   Тёмный, спокойный интерфейс-мастерская для хаба из 100+ ИИ-генераторов.
+   Нейтральная холодная графитовая база + один акцентный цвет
+   ("signal blue" #5B7FFF) — включается точечно: primary-действия,
+   активные пункты навигации, фокус-состояния.
+
+   Тёмная тема — структурный дефолт (значения лежат в :root), светлая —
+   осознанный альтернативный режим через класс .light.
+   ========================================================================== */
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  --radius: 0.5rem;
+
+  /* ---- Тёмная тема (используется по умолчанию) ---- */
+  --background: #0a0a0d;
+  --foreground: #ededf1;
+
+  --card: #131318;
+  --card-foreground: #ededf1;
+
+  --popover: #16161c;
+  --popover-foreground: #ededf1;
+
+  --primary: #5b7fff;
+  --primary-foreground: #f5f7ff;
+
+  --secondary: #1c1c22;
+  --secondary-foreground: #ededf1;
+
+  --muted: #18181e;
+  --muted-foreground: #93939f;
+
+  --accent: #1d1d24;
+  --accent-foreground: #f5f5f7;
+
+  --destructive: #f0554d;
+  --destructive-foreground: #ffffff;
+
+  --success: #34c98e;
+  --warning: #e8b339;
+
+  --border: #232329;
+  --input: #232329;
+  --ring: #5b7fff;
+
+  /* Sidebar — отдельный слой поверх контента, свои токены */
+  --sidebar: #0d0d11;
+  --sidebar-foreground: #d6d6dc;
+  --sidebar-border: #1e1e24;
+  --sidebar-accent: #1a1a21;
+  --sidebar-accent-foreground: #f5f5f7;
+  --sidebar-primary: #5b7fff;
+  --sidebar-primary-foreground: #f5f7ff;
+}
+
+.dark {
+  --background: #0a0a0d;
+  --foreground: #ededf1;
+  --card: #131318;
+  --card-foreground: #ededf1;
+  --popover: #16161c;
+  --popover-foreground: #ededf1;
+  --primary: #5b7fff;
+  --primary-foreground: #f5f7ff;
+  --secondary: #1c1c22;
+  --secondary-foreground: #ededf1;
+  --muted: #18181e;
+  --muted-foreground: #93939f;
+  --accent: #1d1d24;
+  --accent-foreground: #f5f5f7;
+  --destructive: #f0554d;
+  --destructive-foreground: #ffffff;
+  --success: #34c98e;
+  --warning: #e8b339;
+  --border: #232329;
+  --input: #232329;
+  --ring: #5b7fff;
+  --sidebar: #0d0d11;
+  --sidebar-foreground: #d6d6dc;
+  --sidebar-border: #1e1e24;
+  --sidebar-accent: #1a1a21;
+  --sidebar-accent-foreground: #f5f5f7;
+  --sidebar-primary: #5b7fff;
+  --sidebar-primary-foreground: #f5f7ff;
+}
+
+/* ---- Светлая тема (опционально, переключается через ThemeToggle) ---- */
+.light {
+  --background: #fafafa;
+  --foreground: #101014;
+
+  --card: #ffffff;
+  --card-foreground: #101014;
+
+  --popover: #ffffff;
+  --popover-foreground: #101014;
+
+  --primary: #3d5fef;
+  --primary-foreground: #ffffff;
+
+  --secondary: #f0f0f2;
+  --secondary-foreground: #101014;
+
+  --muted: #f0f0f2;
+  --muted-foreground: #6b6b76;
+
+  --accent: #eef0ff;
+  --accent-foreground: #1a1a1f;
+
+  --destructive: #dc3d33;
+  --destructive-foreground: #ffffff;
+
+  --success: #1f9d6c;
+  --warning: #b3781f;
+
+  --border: #e5e5e8;
+  --input: #e5e5e8;
+  --ring: #3d5fef;
+
+  --sidebar: #f5f5f7;
+  --sidebar-foreground: #101014;
+  --sidebar-border: #e5e5e8;
+  --sidebar-accent: #eaeaee;
+  --sidebar-accent-foreground: #101014;
+  --sidebar-primary: #3d5fef;
+  --sidebar-primary-foreground: #ffffff;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  html {
+    color-scheme: dark;
+  }
+
+  html.light {
+    color-scheme: light;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+  }
+
+  /* Аккуратный видимый фокус для клавиатурной навигации (a11y) */
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+
+  /* Тонкий скроллбар — уместен для плотного дашборда со 100+ пунктами */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+  *::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  *::-webkit-scrollbar-thumb {
+    background-color: var(--border);
+    border-radius: 9999px;
+  }
+  *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/**
+ * Этап 11 (Оптимизация), виртуализация длинных списков.
+ *
+ * Каталог (главная страница) и «Избранное» — Server Component'ы, и это
+ * сознательно: карточки должны попадать в статический HTML для
+ * поисковиков (Этап 9, SEO Engine). Классическая JS-виртуализация
+ * (react-window и т.п.) размонтирует карточки вне вьюпорта из DOM — это
+ * и есть её смысл, но вместе с этим прячет их и от краулера, сводя на
+ * нет работу SEO Engine на каталоге, который как раз и должен вырасти
+ * до сотен генераторов.
+ *
+ * `content-visibility: auto` — браузерный аналог: элемент остаётся в
+ * DOM целиком (виден краулерам, доступен через Ctrl+F и screen reader),
+ * но браузер пропускает layout/paint для того, что вне вьюпорта, и
+ * досчитывает при подскролле. `contain-intrinsic-size` резервирует
+ * место под ещё не отрисованную карточку, чтобы скролл не прыгал.
+ * Высота — по фактической карточке (иконка + заголовок + описание в
+ * 2 строки + бейджи), с небольшим запасом.
+ */
+.cv-auto {
+  content-visibility: auto;
+  contain-intrinsic-size: 0 168px;
+}
