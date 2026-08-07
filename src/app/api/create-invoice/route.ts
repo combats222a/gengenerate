@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import { siteConfig } from "@/config/site";
 import { PLAN_LABELS, PLAN_PRICES, isSubscriptionPlan } from "@/lib/subscription-plans";
 
 export const runtime = "nodejs";
@@ -10,8 +9,19 @@ export const runtime = "nodejs";
  * "Конверт" не менялся с Этапа 4: тот же payload для NOWPayments
  * (order_id = "token:plan" — вебхук потом раскодирует обратно),
  * pay_currency usdttrc20, те же callback/success/cancel URL, Route
- * Handler вместо Vercel-функции (req, res), домен из общего
- * siteConfig.url.
+ * Handler вместо Vercel-функции (req, res).
+ *
+ * ФИКС (Этап 13.1): домен для ipn_callback_url/success_url/cancel_url
+ * берётся из request.nextUrl.origin — то есть из самого запроса, — а не
+ * из статичного siteConfig.url/NEXT_PUBLIC_SITE_URL. В старой версии на
+ * голых Vercel Functions домен так и брался (req.headers.host); при
+ * переносе на Next.js это заменили на siteConfig.url, который тихо
+ * откатывается на http://localhost:3000, если забыть выставить
+ * NEXT_PUBLIC_SITE_URL на Vercel — тогда инвойс создаётся, пользователь
+ * может даже оплатить, но вебхук NOWPayments улетает на localhost и
+ * оплата никогда не засчитывается. Взяв домен из самого запроса, эта
+ * переменная окружения для платежей больше не нужна и работает
+ * одинаково на проде, préview-деплоях и с любым кастомным доменом.
  *
  * ЭТАП 13: сами тарифы ("day"/"month" по $1/$3) заменены на Premium
  * Monthly/Premium Yearly из ТЗ — значения теперь читаются из
@@ -32,6 +42,7 @@ export async function POST(request: NextRequest) {
   }
 
   const amount = PLAN_PRICES[plan];
+  const origin = request.nextUrl.origin;
 
   try {
     const response = await fetch("https://api.nowpayments.io/v1/invoice", {
@@ -46,9 +57,9 @@ export async function POST(request: NextRequest) {
         pay_currency: "usdttrc20",
         order_id: `${token}:${plan}`, // вебхук прочитает token и plan отсюда
         order_description: PLAN_LABELS[plan],
-        ipn_callback_url: `${siteConfig.url}/api/webhook`,
-        success_url: `${siteConfig.url}/?paid=1`,
-        cancel_url: `${siteConfig.url}/?paid=0`,
+        ipn_callback_url: `${origin}/api/webhook`,
+        success_url: `${origin}/?paid=1`,
+        cancel_url: `${origin}/?paid=0`,
       }),
     });
 
