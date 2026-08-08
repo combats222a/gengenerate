@@ -1,4 +1,4 @@
-import { Shapes, Grid3x3, QrCode, MonitorSmartphone, AudioWaveform } from "lucide-react";
+import { Shapes, Grid3x3, QrCode, MonitorSmartphone, AudioWaveform, Mic } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 /**
@@ -18,4 +18,5 @@ export const GENERATOR_ICON_BY_SLUG: Record<string, LucideIcon> = {
   qr: QrCode,
   mockup: MonitorSmartphone,
   audio: AudioWaveform,
+  "text-to-speech": Mic,
 };

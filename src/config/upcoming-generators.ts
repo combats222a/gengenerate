@@ -4,7 +4,6 @@ import {
   MessageSquareText,
   Eraser,
   Wand2,
-  Mic,
   Music,
   Captions,
   Scissors,
@@ -55,12 +54,6 @@ export const upcomingGenerators: UpcomingGenerator[] = [
     description: "Увеличивает разрешение картинки без потери качества.",
     icon: Wand2,
     categoryId: "image",
-  },
-  {
-    title: "Синтез речи",
-    description: "Озвучивает текст естественным голосом.",
-    icon: Mic,
-    categoryId: "audio",
   },
   {
     title: "Генератор музыкальных лупов",
